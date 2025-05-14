@@ -1,2 +1,6 @@
 env/
 __pycache__
+*.txt
+diff_nro_comprobante.py
+*.log
+.env

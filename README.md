@@ -44,8 +44,8 @@ Este proyecto permite procesar archivos relacionados con libros de IVA Ventas y 
 ### Opción 2: Ejecución desde Línea de Comandos  
 1. Modifica el bloque `if __name__ == "__main__"` en `checker_file.py` para proporcionar los archivos y claves de libros deseados:
    ```python
-   list_of_ventas_cbte = process_file('ventas_cbte202210.txt', 'libro_iva_digital_ventas_cbte')
-   list_of_ventas_alicuota = process_file('ventas_alicuota_202210.txt', 'libro_iva_digital_ventas_alicuota')
+   list_of_ventas_cbte = process_book_file('ventas_cbte202210.txt', 'libro_iva_digital_ventas_cbte')
+   list_of_ventas_alicuota = process_book_file('ventas_alicuota_202210.txt', 'libro_iva_digital_ventas_alicuota')
    ```
 2. Ejecuta el archivo directamente:
    ```bash
