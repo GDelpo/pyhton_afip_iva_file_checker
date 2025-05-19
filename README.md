@@ -13,7 +13,6 @@ Este proyecto permite procesar archivos de libros de IVA Ventas y Compras, valid
 ## 🗂️ Estructura del Proyecto
 
 ```
-
 .
 ├── .env                  # Variables de configuración y credenciales (no versionar)
 ├── .env.example          # Ejemplo de archivo .env
@@ -22,7 +21,7 @@ Este proyecto permite procesar archivos de libros de IVA Ventas y Compras, valid
 ├── logger.py             # Configuración central de logging
 ├── orchestrator.py       # Punto de entrada CLI
 ├── ui.py                 # GUI con Tkinter
-├── afip\_client/          # Cliente HTTP a servicios AFIP
+├── afip\_client/         # Cliente HTTP a servicios AFIP
 │   ├── afip\_service.py
 │   ├── error\_detector.py
 │   └── error\_utils.py
