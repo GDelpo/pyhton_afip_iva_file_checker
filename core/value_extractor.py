@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Tuple, Union
 from logger import logger
 
 
-def extract_field_value(
+def extract_substring_value(
     data_string: str, positions: Union[Tuple[int, int], Tuple[int]]
 ) -> str:
     """
@@ -57,7 +57,7 @@ def format_field_value(value: str, decimal_index: int) -> str:
         return value
 
 
-def extract_values_from_string(data_string: str, field_structure: Dict) -> Dict:
+def extract_and_format_fields(data_string: str, field_structure: Dict) -> Dict:
     """
     Extrae valores de una cadena de acuerdo a una estructura de campo definida, aplicando
     formateo para los casos de decimales sin punto (13 enteros y 2 decimales, 4 enteros y 6 decimales).
@@ -79,7 +79,7 @@ def extract_values_from_string(data_string: str, field_structure: Dict) -> Dict:
             "Observaciones"
         )  # Usamos .get() para evitar errores si no hay observaciones
 
-        field_value = extract_field_value(data_string, field_positions)
+        field_value = extract_substring_value(data_string, field_positions)
         logger.debug(
             f"Campo {field_number} ({field_name}): valor extraído '{field_value}'"
         )
@@ -111,7 +111,9 @@ def extract_values_from_string(data_string: str, field_structure: Dict) -> Dict:
     return extracted_values
 
 
-def extract_documents_by_key(merged_dict: Dict, book_key: str, field_number: int = 7) -> List[Optional[int]]:
+def extract_document_ids(
+    merged_dict: Dict, book_key: str, field_number: int = 7
+) -> List[Optional[int]]:
     """
     Encuentra documentos en un diccionario fusionado según un campo específico
     y los devuelve como valores enteros, o None cuando no se pueda convertir.
@@ -134,7 +136,7 @@ def extract_documents_by_key(merged_dict: Dict, book_key: str, field_number: int
         if book_key in value:
             field_data = value[book_key].get(field_number, {})
             field_value = field_data.get("value")
-            
+
             if field_value is not None:
                 try:
                     # Intentar convertir a entero, eliminando posibles espacios
@@ -144,14 +146,18 @@ def extract_documents_by_key(merged_dict: Dict, book_key: str, field_number: int
                     logger.debug(f"Documento encontrado en línea {key}: {doc_id}")
                 except (ValueError, TypeError):
                     # Si no se puede convertir, agregar None y registrar el error
-                    list_of_docs.append(None)
+                    list_of_docs.append(0)
                     count_invalid += 1
-                    logger.warning(f"No se pudo convertir a entero el valor '{field_value}' en línea {key}")
+                    logger.warning(
+                        f"No se pudo convertir a entero el valor '{field_value}' en línea {key}"
+                    )
             else:
                 # Si no hay valor, agregar None para mantener correspondencia con índices
-                list_of_docs.append(None)
+                list_of_docs.append(0)
                 count_invalid += 1
                 logger.debug(f"No se encontró valor en la línea {key}")
 
-    logger.info(f"Total de documentos encontrados: {len(list_of_docs)} (válidos: {count_valid}, inválidos: {count_invalid})")
+    logger.info(
+        f"Total de documentos encontrados: {len(list_of_docs)} (válidos: {count_valid}, inválidos: {count_invalid})"
+    )
     return list_of_docs

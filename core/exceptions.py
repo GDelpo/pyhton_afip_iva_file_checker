@@ -1,4 +1,4 @@
-class BookProcessingError(Exception):
+class ProcessingError(Exception):
     """Excepción personalizada para errores durante el procesamiento de libros."""
 
     def __init__(self, message):

@@ -1,15 +1,8 @@
-import logging
-import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
-import sys
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from main import process_book_comparison
-
-from core import BookProcessingError
+from core.exceptions import ProcessingError
+from orchestrator import run_book_comparison
 
 
 class Application(tk.Frame):
@@ -267,7 +260,7 @@ class Application(tk.Frame):
             return
 
         try:
-            resultado, message = process_book_comparison(
+            resultado, message = run_book_comparison(
                 book_1_file_path=ventas,
                 book_1_key="libro_iva_digital_ventas_cbte",
                 book_2_file_path=alicuota,
@@ -275,7 +268,7 @@ class Application(tk.Frame):
                 output_folder_path=destino,
             )
             messagebox.showinfo("Resultado", message)
-        except BookProcessingError as e:
+        except ProcessingError as e:
             messagebox.showerror("Error de procesamiento", e.message)
         except Exception as e:
             messagebox.showerror("Error inesperado", f"Ocurrió un error: {str(e)}")

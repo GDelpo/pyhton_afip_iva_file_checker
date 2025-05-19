@@ -33,7 +33,9 @@ def setup_logger(log_level=logging.INFO):
         console_handler.setFormatter(console_format)
 
         # Handler para archivo
-        log_file = f"{log_dir}/afip_iva_checker_{datetime.now().strftime('%Y%m%d')}.log"
+        log_file = (
+            f"{log_dir}/afip_iva_checker_{datetime.now().strftime('%d-%m-%Y')}.log"
+        )
         file_handler = logging.FileHandler(log_file, encoding="utf-8")
         file_handler.setLevel(log_level)
         file_format = logging.Formatter(

@@ -1,4 +1,3 @@
-import math
 from typing import Dict, List, Tuple
 
 from logger import logger
@@ -36,7 +35,7 @@ def calculate_field_totals(data_dict: Dict[int, Dict], keys_to_sum: List[int]) -
     return data_dict
 
 
-def get_difference(value1: float, value2: float) -> float:
+def compute_difference(value1: float, value2: float) -> float:
     """
     Calcula la diferencia absoluta entre dos valores.
 
@@ -50,7 +49,7 @@ def get_difference(value1: float, value2: float) -> float:
     return abs(value1 - value2)
 
 
-def check_difference_exceeds_threshold(
+def is_difference_significant(
     value1: float, value2: float, threshold: float = 1
 ) -> bool:
     """
@@ -64,10 +63,10 @@ def check_difference_exceeds_threshold(
     Returns:
         True si la diferencia excede el umbral, False en caso contrario
     """
-    return get_difference(value1, value2) > threshold
+    return compute_difference(value1, value2) > threshold
 
 
-def find_total_differences(
+def detect_total_differences(
     merged_dict: Dict[str, Dict], book_key: str, field_number: int = 9
 ) -> List[Tuple]:
     """
@@ -96,61 +95,14 @@ def find_total_differences(
 
         # Comparar los valores
         if field_value is not None and total_summed_amount != field_value:
-            diff = get_difference(total_summed_amount, field_value)
-            if check_difference_exceeds_threshold(total_summed_amount, field_value):
-                logger.info(
+            diff = compute_difference(total_summed_amount, field_value)
+            if is_difference_significant(total_summed_amount, field_value):
+                logger.debug(
                     f"Diferencia encontrada en línea {key}: calculado={total_summed_amount}, actual={field_value}, diff={diff}"
                 )
                 # Si no coinciden, añadir una tupla con: número de fila (key), total_summed_amount, y field_value
-                differences.append((key, total_summed_amount, field_value))
+                differences.append((int(key), total_summed_amount, field_value))
 
+    logger.debug(f"Diferencias encontradas: {differences}")
     logger.info(f"Total de diferencias encontradas: {len(differences)}")
     return differences
-
-def format_len_value(str_value: str, len_of_str: int) -> str:
-    """
-    Formatea un valor string a una longitud específica, rellenando con ceros a la izquierda.
-
-    Args:
-        str_value: Valor string a formatear
-        len_of_str: Longitud del string resultante
-
-    Returns:
-        Cadena formateada
-    """
-    if len(str_value) < len_of_str:
-        diff = len_of_str - len(str_value)
-        str_value = f"{'0' * diff}{str_value}"
-
-    return str_value
-
-def format_number_value(value: float, len_of_str: int) -> str:
-    """
-    Formatea un valor numérico según el formato requerido por AFIP.
-
-    Args:
-        value: Valor numérico a formatear
-        len_of_str: Longitud del string resultante
-
-    Returns:
-        Cadena formateada
-    """
-    try:
-        # Descomponer el valor en parte decimal y parte entera
-        decimals, integer = math.modf(value)
-
-        # Redondear la parte decimal a dos decimales
-        decimals = abs(round(decimals, 2))
-
-        # Convertir a string y eliminar el punto decimal
-        str_value = f"{int(integer)}{str(decimals)[2:].ljust(2, '0')}"
-
-        # Ajustar a longitud 
-        if len(str_value) < len_of_str:
-            str_value = format_len_value(str_value, len_of_str)
-
-        return str_value
-
-    except (ValueError, TypeError) as e:
-        logger.error(f"Error al formatear valor {value}: {e}")
-        return None

@@ -1,10 +1,9 @@
-import logging
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
 
-logger = logging.getLogger(__name__)
+from logger import logger
 
 
 class AFIPService:
@@ -109,7 +108,7 @@ class AFIPService:
             return False
         return True
 
-    def _query_service(
+    def _query_once(
         self, service_name: str, person_ids: List[Any]
     ) -> Optional[List[Dict[str, Any]]]:
         """
@@ -160,10 +159,14 @@ class AFIPService:
                 # empty list if missing)
                 response_data = response.json().get("data", [])
                 # Clean each dictionary in the response data using the static
-                # method clean_dict
-                cleaned_data = [AFIPService.clean_dict(item) for item in response_data]
+                # method clean_response_dict
+                cleaned_data = [
+                    AFIPService.clean_response_dict(item) for item in response_data
+                ]
                 return cleaned_data
             else:
+                sent_body = getattr(response.request, "body", "<no body>")
+                logger.debug("BODY enviado realmente:\n%s", sent_body)
                 logger.error(
                     "Error querying service '%s': %s", service_name, response.text
                 )
@@ -175,7 +178,7 @@ class AFIPService:
             )
             return None
 
-    def _request_with_retry(
+    def _query_with_retry(
         self, service_name: str, fragment: List[Any]
     ) -> Optional[List[Dict[str, Any]]]:
         """
@@ -193,7 +196,7 @@ class AFIPService:
             Optional[List[Dict[str, Any]]]: The service response if successful; None if all retries fail.
         """
         for attempt in range(1, self.max_retries + 1):
-            response = self._query_service(service_name, fragment)
+            response = self._query_once(service_name, fragment)
             if response:
                 return response
             else:
@@ -214,7 +217,7 @@ class AFIPService:
         )
         return None
 
-    def fetch_data_service(
+    def fetch_service_data(
         self, service_name: str, person_ids: List[Any]
     ) -> Optional[List[Dict[str, Any]]]:
         """
@@ -263,7 +266,7 @@ class AFIPService:
                 )
                 time.sleep(self.pause_duration)
                 logger.debug(f"List of nits for request: {chunk}")
-            response = self._request_with_retry(service_name, chunk)
+            response = self._query_with_retry(service_name, chunk)
             if response:
                 logger.debug(response)
                 total_data.extend(response)
@@ -307,7 +310,7 @@ class AFIPService:
         return self.services_available
 
     @staticmethod
-    def clean_dict(
+    def clean_response_dict(
         data: Union[Dict[Any, Any], List[Any]],
     ) -> Union[Dict[Any, Any], List[Any]]:
         """
@@ -322,12 +325,12 @@ class AFIPService:
         """
         if isinstance(data, dict):
             return {
-                key: AFIPService.clean_dict(value)
+                key: AFIPService.clean_response_dict(value)
                 for key, value in data.items()
                 if value not in [None, []]
             }
         elif isinstance(data, list):
-            return [AFIPService.clean_dict(item) for item in data]
+            return [AFIPService.clean_response_dict(item) for item in data]
         else:
             return data
 
@@ -357,7 +360,9 @@ class AFIPService:
         return formatted
 
     @staticmethod
-    def extract_errors(record: Dict[str, Any], error_keys: List[str]) -> List[Any]:
+    def extract_error_details(
+        record: Dict[str, Any], error_keys: List[str]
+    ) -> List[Any]:
         """
         Iterates over specified error keys in a record and accumulates any found errors.
 
@@ -417,7 +422,7 @@ class AFIPService:
         Processes each record in the data dictionary to accumulate errors found.
 
         For each record:
-        - Uses extract_errors() to retrieve errors.
+        - Uses extract_error_details() to retrieve errors.
         - If only one error is found, stores it directly; if multiple errors are found, stores them as a list.
 
         Args:
@@ -434,7 +439,7 @@ class AFIPService:
             logger.debug(
                 "Processing record with identifier '%s': %s", identifier, record
             )
-            errors = AFIPService.extract_errors(record, error_keys)
+            errors = AFIPService.extract_error_details(record, error_keys)
             if errors:
                 # If there's only one error, store it directly; otherwise, store
                 # the list of errors

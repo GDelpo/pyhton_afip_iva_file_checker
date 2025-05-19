@@ -1,96 +1,177 @@
-# Procesamiento de Archivos IVA AFIP  
-Este proyecto permite procesar archivos relacionados con libros de IVA Ventas y Compras, utilizando una lógica avanzada para verificar la estructura, sumar valores, detectar discrepancias, y generar reportes. Incluye una interfaz gráfica (GUI) desarrollada con **Tkinter** para facilitar la interacción con el usuario.
+# Procesamiento de Libros IVA (AFIP)
 
-## Estructura del Proyecto
+Este proyecto permite procesar archivos de libros de IVA Ventas y Compras, validando formatos, calculando totales, detectando discrepancias (incluyendo validaciones contra los servicios de AFIP) y generando reportes automáticos. Incluye:
 
-- **`checker_file.py`**: Contiene toda la lógica del procesamiento de los libros IVA. Extrae datos, verifica formatos y genera reportes.
-- **`gui.py`**: Implementa una interfaz gráfica con Tkinter para facilitar la selección de archivos y la ejecución del proceso.
+- **Lógica modular** en `core/` para parsing, cálculos, formateo de diferencias y generación de reportes.  
+- **Cliente HTTP** en `afip_client/` con retries y limpieza de respuestas para verificar documentos en los servicios “inscription” y “padron” de AFIP.  
+- **Interfaz de línea de comandos** vía `orchestrator.py`.  
+- **Interfaz gráfica** (GUI) basada en Tkinter en `ui.py`.  
+- **Logging estructurado** en consola y archivo diario (`logs/afip_iva_checker_YYYYMMDD.log`).
 
 ---
 
-## Requisitos Previos
+## 🗂️ Estructura del Proyecto
 
-1. **Python 3.8 o superior**  
-2. Instalación de los paquetes necesarios:
+```
+
+.
+├── .env                  # Variables de configuración y credenciales (no versionar)
+├── .env.example          # Ejemplo de archivo .env
+├── .gitignore
+├── README.md
+├── logger.py             # Configuración central de logging
+├── orchestrator.py       # Punto de entrada CLI
+├── ui.py                 # GUI con Tkinter
+├── afip\_client/          # Cliente HTTP a servicios AFIP
+│   ├── afip\_service.py
+│   ├── error\_detector.py
+│   └── error\_utils.py
+├── core/                 # Procesamiento de libros IVA
+│   ├── book\_parser.py
+│   ├── book\_merger.py
+│   ├── diff\_formatter.py
+│   ├── error\_document\_mapper.py
+│   ├── field\_calculator.py
+│   ├── file\_writer.py
+│   ├── report\_generator.py
+│   ├── string\_utils.py
+│   ├── value\_extractor.py
+│   └── exceptions.py
+├── models/               # Utilidades y definiciones de estructura de libros
+│   ├── book\_utils.py
+│   └── models.py
+└── logs/                 # Directorio donde se almacenan los archivos de log
+
+````
+
+---
+
+## ⚙️ Requisitos
+
+- **Python 3.8+**  
+- Paquetes en `requirements.txt` (crear con `pip freeze > requirements.txt`), entre ellos:
+  ```bash
+  requests
+  python-dotenv
+````
+
+* **Tkinter** (viene con la mayoría de distribuciones de Python).
+
+---
+
+## 🔧 Configuración
+
+1. Copia `.env.example` a `.env`:
+
    ```bash
-   pip install tk
+   cp .env.example .env
    ```
+2. Edita `.env` con tus credenciales y parámetros:
 
----
+   ```ini
+   AFIP_USERNAME=mi_usuario
+   AFIP_PASSWORD=mi_clave
+   AFIP_BASE_URL=https://api.afip.gob.ar
+   AFIP_CHUNK_SIZE=100
+   AFIP_MAX_CALLS=5
+   AFIP_PAUSE_DURATION=2
+   AFIP_MAX_RETRIES=3
+   AFIP_RETRY_DELAY=1
+   AFIP_SERVICES_AVAILABLE=inscription,padron
+   ```
+3. Instala dependencias:
 
-## Estructura de Archivos y Directorios
-
-- **Archivos de Entrada**: Archivos de texto (.txt) con los formatos:
-  - `ventas_cbte_YYYYMM.txt`  
-  - `ventas_alicuota_YYYYMM.txt`  
-
-- **Salida**:  
-  - Un archivo modificado del libro IVA ventas.  
-  - Un reporte en formato `.json` con las discrepancias detectadas.
-
----
-
-## Ejecución del Proyecto
-
-### Opción 1: Ejecución con Interfaz Gráfica  
-1. Ejecuta el archivo `gui.py`:
    ```bash
-   python gui.py
-   ```
-2. Sigue las instrucciones en la interfaz para seleccionar los archivos de IVA ventas y alícuotas, y define la carpeta de destino.  
-3. Haz clic en **"Ejecutar proceso"** para completar la operación.  
-4. Revisa los archivos generados en la carpeta de destino.
-
-### Opción 2: Ejecución desde Línea de Comandos  
-1. Modifica el bloque `if __name__ == "__main__"` en `checker_file.py` para proporcionar los archivos y claves de libros deseados:
-   ```python
-   list_of_ventas_cbte = process_book_file('ventas_cbte202210.txt', 'libro_iva_digital_ventas_cbte')
-   list_of_ventas_alicuota = process_book_file('ventas_alicuota_202210.txt', 'libro_iva_digital_ventas_alicuota')
-   ```
-2. Ejecuta el archivo directamente:
-   ```bash
-   python checker_file.py
+   pip install -r requirements.txt
    ```
 
 ---
 
-## Descripción de la Lógica
+## 🚀 Uso
 
-- **Extracción de Datos:**  
-  Usa posiciones definidas en el diccionario `BOOKS` para extraer datos específicos de cada línea del archivo.
+### 1. Desde Línea de Comandos
 
-- **Cálculo de Totales:**  
-  La función `calculate_total_values` suma los valores relevantes para los campos especificados.
+```bash
+python orchestrator.py \
+  <ruta_libro_ventas.txt> <clave_libro_ventas> \
+  <ruta_libro_compras.txt> <clave_libro_compras> \
+  <carpeta_salida>
+```
 
-- **Fusión de Libros:**  
-  Utiliza `merge_books_by_key` para combinar los datos de ventas y alícuotas en un solo diccionario.
+* `<clave_libro_ventas>` y `<clave_libro_compras>` corresponden a las claves esperadas (p. ej. `libro_iva_digital_ventas_cbte`).
+* Se generará en la carpeta de salida:
 
-- **Detección de Discrepancias:**  
-  Detecta diferencias entre valores calculados y reales usando `find_total_differences`.
+  * El archivo modificado con sufijo `_modificated`.
+  * Un reporte JSON `final_report_YYYY-MM-DD.json`.
 
-- **Generación de Reportes:**  
-  Genera un archivo `.json` con los resultados del proceso.
-
----
-
-## Posibles Errores y Solución de Problemas
-
-- **Error: "La longitud de la línea no coincide..."**  
-  Verifica que el archivo tenga el formato correcto y que cada línea tenga la longitud esperada.
-
-- **Error de Archivo no Encontrado:**  
-  Asegúrate de proporcionar rutas válidas para los archivos de entrada.
+> **Tip**: Si quieres personalizar nombres o integrarlo en otro CLI, edita el bloque `if __name__ == "__main__":` de `orchestrator.py`.
 
 ---
 
-## Ejemplo de Uso
+### 2. Interfaz Gráfica (Tkinter)
 
-1. Archivo de ventas: `ventas_cbte202210.txt`  
-2. Archivo de alícuotas: `ventas_alicuota_202210.txt`  
-3. Carpeta de salida: `/ruta/de/destino/`
+```bash
+python ui.py
+```
+
+1. Selecciona los archivos de ventas y compras.
+2. Define la carpeta de destino.
+3. Haz clic en **“Ejecutar proceso”**.
+
+Los resultados aparecerán en la carpeta seleccionada.
 
 ---
 
-## Contribuciones
+## 📑 Detalles Internos
 
-Si encuentras errores o tienes ideas para mejorar el proyecto, no dudes en abrir un **issue** o enviar un **pull request**.
+1. **Parsing** (`core/book_parser.py`):
+
+   * Valida longitud de cada línea según la definición en `models/book_utils.py`.
+   * Extrae y formatea campos con `value_extractor`.
+   * Calcula totales parciales con `field_calculator`.
+
+2. **Fusión y Cálculos** (`core/book_merger.py`):
+
+   * Combina línea a línea los dos libros.
+   * Añade el total sumado de campos específicos.
+
+3. **Detección de discrepancias** (`core/diff_formatter.py` / `core/field_calculator.py`):
+
+   * Compara totales calculados vs. originales.
+   * Formatea los valores para escritura directa en el archivo de origen.
+
+4. **Validación AFIP** (`afip_client/`):
+
+   * Consulta los servicios `inscription`/`padron`.
+   * Reintentos con backoff exponencial y pausa tras X llamadas.
+   * Limpieza de la respuesta y acumulación de errores.
+
+5. **Reemplazo de valores** (`core/file_writer.py`):
+
+   * Lee y sobreescribe las líneas que difieren, generando un nuevo archivo.
+
+6. **Reporte final** (`core/report_generator.py`):
+
+   * JSON con datos procesados, discrepancias y fecha de ejecución.
+
+---
+
+## 🐞 Errores Comunes
+
+* **Longitud de línea incorrecta**:
+  El parser lanzará `ProcessingError` si la línea no coincide con la longitud esperada.
+* **Credenciales AFIP inválidas**:
+  Verifica tus variables en `.env` y la conectividad a `AFIP_BASE_URL`.
+* **Sin diferencias detectadas**:
+  No se generará archivo modificado, pero sí un reporte con `"No differences found"`.
+
+---
+
+## 🤝 Contribuciones
+
+¡Todas las mejoras son bienvenidas! Para colaborar:
+
+1. Abre un **issue** describiendo tu propuesta.
+2. Crea un **branch** y envía un **pull request**.
+
+Por favor, asegúrate de incluir siempre **tests** y actualizar la documentación.

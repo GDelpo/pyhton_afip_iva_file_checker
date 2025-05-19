@@ -17,11 +17,11 @@ def retrieve_keys_to_sum(name_of_book):
     return list_of_keys
 
 
-def get_book_structure(name_of_book):
+def retrieve_field_structure(name_of_book):
     return BOOKS[name_of_book]
 
 
-def get_book_length(name_of_book):
+def retrieve_expected_length(name_of_book):
     len_of_book = 0
     match name_of_book:
         case "libro_iva_digital_ventas_cbte":
