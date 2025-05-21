@@ -43,7 +43,7 @@ def run_book_comparison(
     """
     Realiza el proceso completo de comparación entre dos libros IVA.
     """
-    logger.info(f"Iniciando comparación: {book_1_key} vs {book_2_key}")
+    logger.info(f"Iniciando proceso de unificación y fix sobre: {book_1_key} y {book_2_key}")
 
     try:
         # Parseo de archivos

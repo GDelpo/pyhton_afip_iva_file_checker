@@ -61,7 +61,7 @@ def generate_final_report(
         # Nombre de archivo por fecha
         filename = f"final_report_{datetime.now().strftime('%Y-%m-%d_%H%M%S')}.json"
         file_path = os.path.join(base_dir, filename)
-        msg += f"\nRuta del archivo: {file_path}"
+        msg += f"\nRuta del archivo: {file_path.replace(os.sep, '/')}"
 
         # Guardar JSON
         with open(file_path, "w", encoding="utf-8") as f:

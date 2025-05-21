@@ -155,6 +155,23 @@ Los resultados aparecerán en la carpeta seleccionada.
 
 ---
 
+## ▶ Creación de ejecutable
+
+Para crear un ejecutable, asegúrate de tener `pyinstaller` instalado:
+
+```bash
+pip install pyinstaller
+```
+Luego, ejecuta el siguiente comando en la raíz del proyecto:
+
+```bash
+pyinstaller --onefile --noconsole --name iva_checker_gui --add-data ".env;.env" --paths=. ui.py
+```
+Esto generará un ejecutable en la carpeta `dist/` con el nombre `iva_checker_gui`. Puedes mover este ejecutable a cualquier lugar y ejecutarlo sin necesidad de tener Python instalado.
+
+> [!IMPORTANT]  
+> Recuerda que el ejecutable necesita el archivo `.env` para funcionar correctamente, así que asegúrate de que esté en la misma carpeta que el ejecutable o ajusta la ruta en el código.
+
 ## 🐞 Errores Comunes
 
 * **Longitud de línea incorrecta**:
