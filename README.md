@@ -12,7 +12,7 @@ Este proyecto permite procesar archivos de libros de IVA Ventas y Compras, valid
 
 ## 🗂️ Estructura del Proyecto
 
-```
+````bash
 .
 ├── .env                  # Variables de configuración y credenciales (no versionar)
 ├── .env.example          # Ejemplo de archivo .env
@@ -40,7 +40,6 @@ Este proyecto permite procesar archivos de libros de IVA Ventas y Compras, valid
 │   ├── book\_utils.py
 │   └── models.py
 └── logs/                 # Directorio donde se almacenan los archivos de log
-
 ````
 
 ---
@@ -48,26 +47,24 @@ Este proyecto permite procesar archivos de libros de IVA Ventas y Compras, valid
 ## ⚙️ Requisitos
 
 - **Python 3.8+**  
-- Paquetes en `requirements.txt` (crear con `pip freeze > requirements.txt`), entre ellos:
-  ```bash
-  requests
-  python-dotenv
-````
+- Paquetes en `requirements.txt`, instalables con:
 
-* **Tkinter** (viene con la mayoría de distribuciones de Python).
-
+   ````bash
+   pip install -r requirements.txt
+   ````
+   
 ---
 
 ## 🔧 Configuración
 
 1. Copia `.env.example` a `.env`:
 
-   ```bash
+   ````bash
    cp .env.example .env
-   ```
+   ````
 2. Edita `.env` con tus credenciales y parámetros:
 
-   ```ini
+   ````ini
    AFIP_USERNAME=mi_usuario
    AFIP_PASSWORD=mi_clave
    AFIP_BASE_URL=https://api.afip.gob.ar
@@ -77,7 +74,8 @@ Este proyecto permite procesar archivos de libros de IVA Ventas y Compras, valid
    AFIP_MAX_RETRIES=3
    AFIP_RETRY_DELAY=1
    AFIP_SERVICES_AVAILABLE=inscription,padron
-   ```
+   ````
+
 3. Instala dependencias:
 
    ```bash
